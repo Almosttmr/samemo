@@ -25,6 +25,15 @@ const defaultConfig = {
   shortcutKey: 'CommandOrControl+Shift+M'
 }
 
+function setAutoLaunch(enabled) {
+  const exePath = app.getPath('exe')
+  app.setLoginItemSettings({
+    openAtLogin: enabled,
+    path: exePath,
+    args: ['--hidden']
+  })
+}
+
 // 单实例锁定，防止多开
 const gotTheLock = app.requestSingleInstanceLock()
 
@@ -163,7 +172,7 @@ function createTray() {
         const cfg = loadConfig()
         cfg.openAtLogin = menuItem.checked
         saveConfig(cfg)
-        app.setLoginItemSettings({ openAtLogin: menuItem.checked })
+        setAutoLaunch(menuItem.checked)
       }
     },
     { type: 'separator' },
@@ -272,7 +281,7 @@ app.whenReady().then(() => {
   const config = loadConfig()
   
   // 设置开机自启动
-  app.setLoginItemSettings({ openAtLogin: config.openAtLogin })
+  setAutoLaunch(config.openAtLogin)
   
   // 注册全局快捷键
   registerShortcut(config.shortcutKey)
@@ -324,7 +333,7 @@ ipcMain.handle('save-config', (event, newConfig) => {
     mainWindow.setAlwaysOnTop(newConfig.alwaysOnTop)
   }
   if (newConfig.openAtLogin !== undefined) {
-    app.setLoginItemSettings({ openAtLogin: newConfig.openAtLogin })
+    setAutoLaunch(newConfig.openAtLogin)
     // 更新托盘菜单
     if (tray) {
       const contextMenu = Menu.buildFromTemplate([
@@ -349,7 +358,7 @@ ipcMain.handle('save-config', (event, newConfig) => {
             const cfg = loadConfig()
             cfg.openAtLogin = menuItem.checked
             saveConfig(cfg)
-            app.setLoginItemSettings({ openAtLogin: menuItem.checked })
+            setAutoLaunch(menuItem.checked)
           }
         },
         { type: 'separator' },
